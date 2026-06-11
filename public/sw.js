@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tasas-ves-cache-v2';
+const CACHE_NAME = 'tasas-ves-cache-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',

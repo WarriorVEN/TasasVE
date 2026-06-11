@@ -255,12 +255,12 @@ export default function Home() {
                   inputMode="decimal"
                   value={customRates.usd_bcv || ''}
                   onChange={(e) => handleCustomRateChange('usd_bcv', e.target.value)}
-                  className="w-full bg-transparent text-right font-bold font-mono focus:outline-none text-amber-400 text-sm"
+                  className="w-full bg-transparent text-right font-bold font-mono focus:outline-none text-amber-400 text-xl"
                   step="0.01"
                 />
               </div>
             ) : (
-              <span className="text-lg font-bold font-mono text-emerald-100">
+              <span className="text-2xl font-bold font-mono text-emerald-100">
                 Bs. {formatCurrency(rates.usd_bcv.toString())}
               </span>
             )}
@@ -300,12 +300,12 @@ export default function Home() {
                   inputMode="decimal"
                   value={customRates.eur_bcv || ''}
                   onChange={(e) => handleCustomRateChange('eur_bcv', e.target.value)}
-                  className="w-full bg-transparent text-right font-bold font-mono focus:outline-none text-amber-400 text-sm"
+                  className="w-full bg-transparent text-right font-bold font-mono focus:outline-none text-amber-400 text-xl"
                   step="0.01"
                 />
               </div>
             ) : (
-              <span className="text-lg font-bold font-mono text-indigo-100">
+              <span className="text-2xl font-bold font-mono text-indigo-100">
                 Bs. {formatCurrency(rates.eur_bcv.toString())}
               </span>
             )}
@@ -345,12 +345,12 @@ export default function Home() {
                   inputMode="decimal"
                   value={customRates.usdt_binance || ''}
                   onChange={(e) => handleCustomRateChange('usdt_binance', e.target.value)}
-                  className="w-full bg-transparent text-right font-bold font-mono focus:outline-none text-amber-400 text-sm"
+                  className="w-full bg-transparent text-right font-bold font-mono focus:outline-none text-amber-400 text-xl"
                   step="0.01"
                 />
               </div>
             ) : (
-              <span className="text-lg font-bold font-mono text-amber-100">
+              <span className="text-2xl font-bold font-mono text-amber-100">
                 Bs. {formatCurrency(rates.usdt_binance.toString())}
               </span>
             )}
@@ -399,7 +399,7 @@ export default function Home() {
                 placeholder="0.00"
                 value={activeCurrency === 'VES' ? activeAmount : (conversions.VES || '')}
                 onChange={(e) => handleInputChange(e.target.value, 'VES')}
-                className="w-full bg-transparent text-base font-bold font-mono focus:outline-none text-white placeholder-zinc-700"
+                className="w-full bg-transparent text-2xl font-bold font-mono focus:outline-none text-white placeholder-zinc-700"
               />
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
@@ -425,7 +425,7 @@ export default function Home() {
                 placeholder="0.00"
                 value={activeCurrency === 'USD' ? activeAmount : (conversions.USD || '')}
                 onChange={(e) => handleInputChange(e.target.value, 'USD')}
-                className="w-full bg-transparent text-base font-bold font-mono focus:outline-none text-white placeholder-zinc-700"
+                className="w-full bg-transparent text-2xl font-bold font-mono focus:outline-none text-white placeholder-zinc-700"
               />
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
@@ -451,7 +451,7 @@ export default function Home() {
                 placeholder="0.00"
                 value={activeCurrency === 'EUR' ? activeAmount : (conversions.EUR || '')}
                 onChange={(e) => handleInputChange(e.target.value, 'EUR')}
-                className="w-full bg-transparent text-base font-bold font-mono focus:outline-none text-white placeholder-zinc-700"
+                className="w-full bg-transparent text-2xl font-bold font-mono focus:outline-none text-white placeholder-zinc-700"
               />
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
@@ -477,7 +477,7 @@ export default function Home() {
                 placeholder="0.00"
                 value={activeCurrency === 'USDT' ? activeAmount : (conversions.USDT || '')}
                 onChange={(e) => handleInputChange(e.target.value, 'USDT')}
-                className="w-full bg-transparent text-base font-bold font-mono focus:outline-none text-white placeholder-zinc-700"
+                className="w-full bg-transparent text-2xl font-bold font-mono focus:outline-none text-white placeholder-zinc-700"
               />
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
