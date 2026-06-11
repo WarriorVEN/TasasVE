@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+:root {
+  --background: #09090b; /* Zinc 950 */
+  --foreground: #fafafa; /* Zinc 50 */
+  --card-bg: rgba(18, 18, 24, 0.65);
+  --card-border: rgba(255, 255, 255, 0.08);
+  
+  --usd-glow: rgba(16, 185, 129, 0.15);
+  --eur-glow: rgba(99, 102, 241, 0.15);
+  --usdt-glow: rgba(245, 158, 11, 0.15);
+  --ves-glow: rgba(239, 68, 68, 0.15);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(245, 158, 11, 0.02) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Custom premium classes */
+.glass-panel {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid var(--card-border);
+}
+
+.glass-input {
+  background: rgba(9, 9, 11, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-input:focus {
+  outline: none;
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.2);
+}
+
+.glow-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.glow-card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(to bottom right, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.glow-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Spinner animation */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 2s linear infinite;
+}
+
+/* Custom gradient text */
+.text-gradient-purple {
+  background: linear-gradient(135deg, #a78bfa 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-emerald {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
