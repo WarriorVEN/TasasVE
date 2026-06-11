@@ -381,7 +381,7 @@ export default function Home() {
 
         {/* Rates Summary list - ultra-compact for mobile */}
         <div className="bg-zinc-900/50 p-2.5 rounded-xl border border-white/5 flex items-center justify-around text-[10px] text-zinc-500 font-mono">
-          <div>USD: <span className="font-semibold text-emerald-400">{formatCurrency(activeRates.usd_bcv.toString())}</span></div>
+          <div>USD BCV: <span className="font-semibold text-emerald-400">{formatCurrency(activeRates.usd_bcv.toString())}</span></div>
           <div>EUR: <span className="font-semibold text-indigo-400">{formatCurrency(activeRates.eur_bcv.toString())}</span></div>
           <div>USDT: <span className="font-semibold text-amber-400">{formatCurrency(activeRates.usdt_binance.toString())}</span></div>
         </div>
@@ -417,7 +417,7 @@ export default function Home() {
           {/* USD Input */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/30 border border-white/5 focus-within:border-zinc-700 transition-colors">
             <div className="flex flex-col gap-0.5 flex-1">
-              <label className="text-[10px] font-bold text-emerald-400">$. Dólares (USD)</label>
+              <label className="text-[10px] font-bold text-emerald-400">$. Dólar BCV (USD)</label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -436,7 +436,7 @@ export default function Home() {
               >
                 {copiedId === 'usd-input' ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
               </button>
-              <span className="text-xs text-zinc-500 font-bold bg-white/5 px-2 py-1 rounded border border-white/5">🇺🇸 USD</span>
+              <span className="text-xs text-zinc-500 font-bold bg-white/5 px-2 py-1 rounded border border-white/5">🇺🇸 USD BCV</span>
             </div>
           </div>
 
