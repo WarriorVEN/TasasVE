@@ -260,9 +260,12 @@ export default function Home() {
                 />
               </div>
             ) : (
-              <span className="text-2xl font-bold font-mono text-emerald-100">
-                Bs. {formatCurrency(rates.usd_bcv.toString())}
-              </span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-sm font-medium text-zinc-400">Bs.</span>
+                <span className="text-2xl font-bold font-mono text-emerald-100">
+                  {formatCurrency(rates.usd_bcv.toString())}
+                </span>
+              </div>
             )}
             
             {!loading && !isCustomRates && (
@@ -305,9 +308,12 @@ export default function Home() {
                 />
               </div>
             ) : (
-              <span className="text-2xl font-bold font-mono text-indigo-100">
-                Bs. {formatCurrency(rates.eur_bcv.toString())}
-              </span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-sm font-medium text-zinc-400">Bs.</span>
+                <span className="text-2xl font-bold font-mono text-indigo-100">
+                  {formatCurrency(rates.eur_bcv.toString())}
+                </span>
+              </div>
             )}
             
             {!loading && !isCustomRates && (
@@ -350,9 +356,12 @@ export default function Home() {
                 />
               </div>
             ) : (
-              <span className="text-2xl font-bold font-mono text-amber-100">
-                Bs. {formatCurrency(rates.usdt_binance.toString())}
-              </span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-sm font-medium text-zinc-400">Bs.</span>
+                <span className="text-2xl font-bold font-mono text-amber-100">
+                  {formatCurrency(rates.usdt_binance.toString())}
+                </span>
+              </div>
             )}
             
             {!loading && !isCustomRates && (
