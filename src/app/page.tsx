@@ -390,7 +390,7 @@ export default function Home() {
         <div className="flex flex-col gap-3">
           {/* VES Input */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/30 border border-white/5 focus-within:border-zinc-700 transition-colors">
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-0.5 flex-1">
               <label className="text-[10px] font-bold text-red-400">Bs. Bolívares (VES)</label>
               <input
                 type="text"
@@ -402,12 +402,21 @@ export default function Home() {
                 className="w-full bg-transparent text-base font-bold font-mono focus:outline-none text-white placeholder-zinc-700"
               />
             </div>
-            <span className="text-xs text-zinc-500 font-bold shrink-0 self-center bg-white/5 px-2 py-1 rounded border border-white/5">🇻🇪 VES</span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button 
+                onClick={() => copyToClipboard(activeCurrency === 'VES' ? activeAmount : (conversions.VES || ''), 'ves-input')}
+                className="p-1.5 rounded-lg hover:bg-white/5 active:bg-white/10 active:scale-90 transition-all cursor-pointer text-zinc-400 hover:text-white"
+                title="Copiar cantidad"
+              >
+                {copiedId === 'ves-input' ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+              </button>
+              <span className="text-xs text-zinc-500 font-bold bg-white/5 px-2 py-1 rounded border border-white/5">🇻🇪 VES</span>
+            </div>
           </div>
 
           {/* USD Input */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/30 border border-white/5 focus-within:border-zinc-700 transition-colors">
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-0.5 flex-1">
               <label className="text-[10px] font-bold text-emerald-400">$. Dólares (USD)</label>
               <input
                 type="text"
@@ -419,12 +428,21 @@ export default function Home() {
                 className="w-full bg-transparent text-base font-bold font-mono focus:outline-none text-white placeholder-zinc-700"
               />
             </div>
-            <span className="text-xs text-zinc-500 font-bold shrink-0 self-center bg-white/5 px-2 py-1 rounded border border-white/5">🇺🇸 USD</span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button 
+                onClick={() => copyToClipboard(activeCurrency === 'USD' ? activeAmount : (conversions.USD || ''), 'usd-input')}
+                className="p-1.5 rounded-lg hover:bg-white/5 active:bg-white/10 active:scale-90 transition-all cursor-pointer text-zinc-400 hover:text-white"
+                title="Copiar cantidad"
+              >
+                {copiedId === 'usd-input' ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+              </button>
+              <span className="text-xs text-zinc-500 font-bold bg-white/5 px-2 py-1 rounded border border-white/5">🇺🇸 USD</span>
+            </div>
           </div>
 
           {/* EUR Input */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/30 border border-white/5 focus-within:border-zinc-700 transition-colors">
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-0.5 flex-1">
               <label className="text-[10px] font-bold text-indigo-400">€. Euros (EUR)</label>
               <input
                 type="text"
@@ -436,12 +454,21 @@ export default function Home() {
                 className="w-full bg-transparent text-base font-bold font-mono focus:outline-none text-white placeholder-zinc-700"
               />
             </div>
-            <span className="text-xs text-zinc-500 font-bold shrink-0 self-center bg-white/5 px-2 py-1 rounded border border-white/5">🇪🇺 EUR</span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button 
+                onClick={() => copyToClipboard(activeCurrency === 'EUR' ? activeAmount : (conversions.EUR || ''), 'eur-input')}
+                className="p-1.5 rounded-lg hover:bg-white/5 active:bg-white/10 active:scale-90 transition-all cursor-pointer text-zinc-400 hover:text-white"
+                title="Copiar cantidad"
+              >
+                {copiedId === 'eur-input' ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+              </button>
+              <span className="text-xs text-zinc-500 font-bold bg-white/5 px-2 py-1 rounded border border-white/5">🇪🇺 EUR</span>
+            </div>
           </div>
 
           {/* USDT Input */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/30 border border-white/5 focus-within:border-zinc-700 transition-colors">
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-0.5 flex-1">
               <label className="text-[10px] font-bold text-amber-400">₮. Cripto (USDT)</label>
               <input
                 type="text"
@@ -453,7 +480,16 @@ export default function Home() {
                 className="w-full bg-transparent text-base font-bold font-mono focus:outline-none text-white placeholder-zinc-700"
               />
             </div>
-            <span className="text-xs text-zinc-500 font-bold shrink-0 self-center bg-white/5 px-2 py-1 rounded border border-white/5">🪙 USDT</span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button 
+                onClick={() => copyToClipboard(activeCurrency === 'USDT' ? activeAmount : (conversions.USDT || ''), 'usdt-input')}
+                className="p-1.5 rounded-lg hover:bg-white/5 active:bg-white/10 active:scale-90 transition-all cursor-pointer text-zinc-400 hover:text-white"
+                title="Copiar cantidad"
+              >
+                {copiedId === 'usdt-input' ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+              </button>
+              <span className="text-xs text-zinc-500 font-bold bg-white/5 px-2 py-1 rounded border border-white/5">🪙 USDT</span>
+            </div>
           </div>
         </div>
 
