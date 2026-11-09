@@ -11,7 +11,8 @@ import {
   Coins, 
   Lock, 
   Unlock,
-  Info 
+  Info,
+  Trash2 
 } from 'lucide-react';
 
 interface Rates {
@@ -24,6 +25,39 @@ interface Rates {
   eur_bcv_date?: string;
   eur_bcv_prev_date?: string;
   usdt_binance: number;
+}
+
+// Detect if current Venezuelan time is within the weekend window
+// (Friday after 4:30 PM until Sunday midnight)
+function checkIsWeekendPeriod(): boolean {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Caracas',
+      weekday: 'short',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false,
+    });
+    
+    const parts = formatter.formatToParts(new Date());
+    const weekday = parts.find(p => p.type === 'weekday')?.value;
+    const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0', 10);
+    const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0', 10);
+    
+    // Friday starting at 16:30 (4:30 PM VET)
+    if (weekday === 'Fri') {
+      return (hour > 16) || (hour === 16 && minute >= 30);
+    }
+    
+    // Saturday and Sunday: All day
+    if (weekday === 'Sat' || weekday === 'Sun') {
+      return true;
+    }
+    
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 export default function Home() {
@@ -40,8 +74,9 @@ export default function Home() {
     usdt_binance: 0,
   });
 
-  // Monday / Weekend Rate Toggle (Active by default)
-  const [useMondayRate, setUseMondayRate] = useState(true);
+  // Monday / Weekend Rate Toggle (Deactivated by default: uses Friday rate until user voluntarily activates Monday)
+  const [useMondayRate, setUseMondayRate] = useState(false);
+  const [isWeekendPeriod, setIsWeekendPeriod] = useState(false);
   
   // Custom Rates Override State
   const [isCustomRates, setIsCustomRates] = useState(false);
@@ -95,29 +130,35 @@ export default function Home() {
     }
   }, []);
 
-  // Fetch on mount and register PWA Service Worker
+  // Fetch on mount, check weekend period, and register PWA Service Worker
   useEffect(() => {
     fetchRates();
+    setIsWeekendPeriod(checkIsWeekendPeriod());
+    const timer = setInterval(() => {
+      setIsWeekendPeriod(checkIsWeekendPeriod());
+    }, 60000);
     
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js')
         .then((reg) => console.log('Service Worker registrado:', reg.scope))
         .catch((err) => console.error('Fallo al registrar Service Worker:', err));
     }
+
+    return () => clearInterval(timer);
   }, [fetchRates]);
 
-  // Check if we have weekend / next day rates available
-  const hasWeekendRate = Boolean(
+  // Only show the weekend / Monday card if it's currently Friday 4:30 PM+ or weekend in Venezuela
+  const showWeekendCard = isWeekendPeriod && Boolean(
     rates.usd_bcv_prev && 
     rates.usd_bcv_prev > 0 && 
     rates.usd_bcv !== rates.usd_bcv_prev
   );
 
-  const effectiveUsdRate = (!useMondayRate && hasWeekendRate && rates.usd_bcv_prev) 
+  const effectiveUsdRate = (showWeekendCard && !useMondayRate && rates.usd_bcv_prev) 
     ? rates.usd_bcv_prev 
     : rates.usd_bcv;
 
-  const effectiveEurRate = (!useMondayRate && hasWeekendRate && rates.eur_bcv_prev) 
+  const effectiveEurRate = (showWeekendCard && !useMondayRate && rates.eur_bcv_prev) 
     ? rates.eur_bcv_prev 
     : rates.eur_bcv;
 
@@ -277,7 +318,7 @@ export default function Home() {
       )}
 
       {/* Casilla Tasa Fin de Semana / Lunes */}
-      {hasWeekendRate && !isCustomRates && (
+      {showWeekendCard && !isCustomRates && (
         <div className="glow-card glass-panel rounded-2xl p-3.5 border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-zinc-900/60 to-zinc-900/40 shadow-lg flex flex-col gap-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -384,7 +425,7 @@ export default function Home() {
             <div>
               <span className="text-[10px] font-bold text-emerald-400 tracking-wider uppercase">Dólar BCV</span>
               <span className="text-[9px] text-zinc-500 block">
-                {hasWeekendRate && !isCustomRates
+                {showWeekendCard && !isCustomRates
                   ? (useMondayRate 
                       ? `Oficial • ${formatDayName(rates.usd_bcv_date)}` 
                       : `Oficial • ${formatDayName(rates.usd_bcv_prev_date)}`)
@@ -438,7 +479,7 @@ export default function Home() {
             <div>
               <span className="text-[10px] font-bold text-indigo-400 tracking-wider uppercase">Euro BCV</span>
               <span className="text-[9px] text-zinc-500 block">
-                {hasWeekendRate && !isCustomRates
+                {showWeekendCard && !isCustomRates
                   ? (useMondayRate 
                       ? `Oficial • ${formatDayName(rates.eur_bcv_date)}` 
                       : `Oficial • ${formatDayName(rates.eur_bcv_prev_date)}`)
@@ -534,20 +575,38 @@ export default function Home() {
 
       {/* Converter Section */}
       <section className="glass-panel rounded-3xl p-5 shadow-xl shadow-black/20 flex flex-col gap-4">
-        <div>
-          <h2 className="text-sm md:text-base font-bold text-white mb-0.5">
-            Calculadora Multidivisa
-          </h2>
-          <p className="text-[10px] text-zinc-400">
-            Toca e ingresa un monto para convertir entre todas las divisas de forma instantánea.
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm md:text-base font-bold text-white mb-0.5">
+              Calculadora Multidivisa
+            </h2>
+            <p className="text-[10px] text-zinc-400">
+              Toca e ingresa un monto para convertir entre todas las divisas de forma instantánea.
+            </p>
+          </div>
+
+          {/* Botecito de basura para borrar de una */}
+          <button
+            type="button"
+            onClick={() => setActiveAmount('')}
+            disabled={!activeAmount}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border shrink-0 active:scale-95 ${
+              activeAmount 
+                ? 'bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25 shadow-md shadow-red-950/20' 
+                : 'bg-zinc-800/40 border-white/5 text-zinc-600 opacity-40 cursor-not-allowed'
+            }`}
+            title="Borrar montos de la calculadora"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            <span>Limpiar</span>
+          </button>
         </div>
 
         {/* Rates Summary list - ultra-compact for mobile */}
         <div className="bg-zinc-900/50 p-2.5 rounded-xl border border-white/5 flex items-center justify-around text-[10px] text-zinc-500 font-mono">
           <div>
             USD BCV: <span className="font-semibold text-emerald-400">{formatCurrency(activeRates.usd_bcv.toString())}</span>
-            {hasWeekendRate && !isCustomRates && (
+            {showWeekendCard && !isCustomRates && (
               <span className="text-[9px] text-zinc-400 ml-1">
                 ({useMondayRate ? 'Lun' : 'Vie'})
               </span>
