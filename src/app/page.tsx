@@ -16,7 +16,13 @@ import {
 
 interface Rates {
   usd_bcv: number;
+  usd_bcv_prev?: number;
+  usd_bcv_date?: string;
+  usd_bcv_prev_date?: string;
   eur_bcv: number;
+  eur_bcv_prev?: number;
+  eur_bcv_date?: string;
+  eur_bcv_prev_date?: string;
   usdt_binance: number;
 }
 
@@ -24,9 +30,18 @@ export default function Home() {
   // Exchange Rates State
   const [rates, setRates] = useState<Rates>({
     usd_bcv: 0,
+    usd_bcv_prev: 0,
+    usd_bcv_date: '',
+    usd_bcv_prev_date: '',
     eur_bcv: 0,
+    eur_bcv_prev: 0,
+    eur_bcv_date: '',
+    eur_bcv_prev_date: '',
     usdt_binance: 0,
   });
+
+  // Monday / Weekend Rate Toggle (Active by default)
+  const [useMondayRate, setUseMondayRate] = useState(true);
   
   // Custom Rates Override State
   const [isCustomRates, setIsCustomRates] = useState(false);
@@ -42,8 +57,8 @@ export default function Home() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Calculator State
-  const [activeAmount, setActiveAmount] = useState<string>('100');
+  // Calculator State - Empty by default as requested to avoid confusion
+  const [activeAmount, setActiveAmount] = useState<string>('');
   const [activeCurrency, setActiveCurrency] = useState<'VES' | 'USD' | 'EUR' | 'USDT'>('USD');
 
   // Fetch rates function
@@ -91,11 +106,42 @@ export default function Home() {
     }
   }, [fetchRates]);
 
+  // Check if we have weekend / next day rates available
+  const hasWeekendRate = Boolean(
+    rates.usd_bcv_prev && 
+    rates.usd_bcv_prev > 0 && 
+    rates.usd_bcv !== rates.usd_bcv_prev
+  );
+
+  const effectiveUsdRate = (!useMondayRate && hasWeekendRate && rates.usd_bcv_prev) 
+    ? rates.usd_bcv_prev 
+    : rates.usd_bcv;
+
+  const effectiveEurRate = (!useMondayRate && hasWeekendRate && rates.eur_bcv_prev) 
+    ? rates.eur_bcv_prev 
+    : rates.eur_bcv;
+
   // Active rates to use in calculation (official or custom)
-  const activeRates = isCustomRates ? customRates : rates;
+  const activeRates = isCustomRates ? customRates : {
+    usd_bcv: effectiveUsdRate,
+    eur_bcv: effectiveEurRate,
+    usdt_binance: rates.usdt_binance,
+  };
+
+  // Helper to format date strings like "2026-11-09" to "Lun 09/11"
+  const formatDayName = (dateStr?: string) => {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-').map(Number);
+    if (!y || !m || !d) return dateStr;
+    const date = new Date(Date.UTC(y, m - 1, d));
+    const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const dayName = days[date.getUTCDay()];
+    return `${dayName} ${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}`;
+  };
 
   // Copy to clipboard helper
   const copyToClipboard = (text: string, id: string) => {
+    if (!text || text === '0.00' || text === '0') return;
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
@@ -230,6 +276,103 @@ export default function Home() {
         </div>
       )}
 
+      {/* Casilla Tasa Fin de Semana / Lunes */}
+      {hasWeekendRate && !isCustomRates && (
+        <div className="glow-card glass-panel rounded-2xl p-3.5 border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-zinc-900/60 to-zinc-900/40 shadow-lg flex flex-col gap-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+              </span>
+              <span className="text-xs font-bold text-amber-300 tracking-wide uppercase">
+                Tasa Fin de Semana / Lunes
+              </span>
+            </div>
+
+            {/* Switch Toggle */}
+            <button
+              type="button"
+              onClick={() => setUseMondayRate(!useMondayRate)}
+              className="flex items-center gap-2 cursor-pointer group"
+              title="Activar/Desactivar tasa del lunes"
+            >
+              <span className="text-[11px] font-medium text-zinc-300 group-hover:text-white transition-colors">
+                {useMondayRate ? 'Tasa Lunes Activa' : 'Tasa Viernes Activa'}
+              </span>
+              <div className={`w-10 h-5.5 rounded-full transition-colors p-0.5 flex items-center ${useMondayRate ? 'bg-emerald-500 justify-end' : 'bg-zinc-700 justify-start'}`}>
+                <div className="w-4.5 h-4.5 rounded-full bg-white shadow-md transform transition-transform" />
+              </div>
+            </button>
+          </div>
+
+          {/* Quick toggle chips / comparison pills */}
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            {/* Monday Option */}
+            <button
+              type="button"
+              onClick={() => setUseMondayRate(true)}
+              className={`p-2.5 rounded-xl border flex flex-col items-start transition-all cursor-pointer active:scale-[0.98] ${
+                useMondayRate 
+                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200 shadow-sm' 
+                  : 'bg-zinc-800/40 border-white/5 text-zinc-400 hover:bg-zinc-800'
+              }`}
+            >
+              <div className="flex items-center justify-between w-full">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                  {formatDayName(rates.usd_bcv_date)} (Próxima)
+                </span>
+                {useMondayRate && (
+                  <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-semibold">
+                    En uso
+                  </span>
+                )}
+              </div>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-[11px] text-zinc-400">Bs.</span>
+                <span className="text-base font-bold font-mono text-white">
+                  {formatCurrency(rates.usd_bcv.toString())}
+                </span>
+              </div>
+            </button>
+
+            {/* Friday Option */}
+            <button
+              type="button"
+              onClick={() => setUseMondayRate(false)}
+              className={`p-2.5 rounded-xl border flex flex-col items-start transition-all cursor-pointer active:scale-[0.98] ${
+                !useMondayRate 
+                  ? 'bg-blue-500/15 border-blue-500/40 text-blue-200 shadow-sm' 
+                  : 'bg-zinc-800/40 border-white/5 text-zinc-400 hover:bg-zinc-800'
+              }`}
+            >
+              <div className="flex items-center justify-between w-full">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">
+                  {formatDayName(rates.usd_bcv_prev_date)} (Cierre)
+                </span>
+                {!useMondayRate && (
+                  <span className="text-[9px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-semibold">
+                    En uso
+                  </span>
+                )}
+              </div>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-[11px] text-zinc-400">Bs.</span>
+                <span className="text-base font-bold font-mono text-white">
+                  {formatCurrency(rates.usd_bcv_prev?.toString() || '0')}
+                </span>
+              </div>
+            </button>
+          </div>
+
+          <p className="text-[10px] text-zinc-400 leading-tight">
+            {useMondayRate 
+              ? '💡 Tasa adelantada del BCV para el lunes (utilizada por comercios y P2P).' 
+              : '🏪 Tasa oficial de cierre del viernes (utilizada por supermercados y puntos).'}
+          </p>
+        </div>
+      )}
+
       {/* Rates Grid - Stacked vertically for mobile, cards are slim and sleek */}
       <section className="flex flex-col gap-3">
         {/* USD Card */}
@@ -240,7 +383,13 @@ export default function Home() {
             </div>
             <div>
               <span className="text-[10px] font-bold text-emerald-400 tracking-wider uppercase">Dólar BCV</span>
-              <span className="text-[9px] text-zinc-500 block">Oficial Banco Central</span>
+              <span className="text-[9px] text-zinc-500 block">
+                {hasWeekendRate && !isCustomRates
+                  ? (useMondayRate 
+                      ? `Oficial • ${formatDayName(rates.usd_bcv_date)}` 
+                      : `Oficial • ${formatDayName(rates.usd_bcv_prev_date)}`)
+                  : 'Oficial Banco Central'}
+              </span>
             </div>
           </div>
           
@@ -263,14 +412,14 @@ export default function Home() {
               <div className="flex items-baseline gap-1">
                 <span className="text-sm font-medium text-zinc-400">Bs.</span>
                 <span className="text-2xl font-bold font-mono text-emerald-100">
-                  {formatCurrency(rates.usd_bcv.toString())}
+                  {formatCurrency(effectiveUsdRate.toString())}
                 </span>
               </div>
             )}
             
             {!loading && !isCustomRates && (
               <button 
-                onClick={() => copyToClipboard(rates.usd_bcv.toFixed(4), 'usd')}
+                onClick={() => copyToClipboard(effectiveUsdRate.toFixed(4), 'usd')}
                 className="p-2 rounded-lg hover:bg-white/5 active:bg-white/10 text-zinc-400 hover:text-white transition-all cursor-pointer active:scale-90"
                 title="Copiar tasa"
               >
@@ -288,7 +437,13 @@ export default function Home() {
             </div>
             <div>
               <span className="text-[10px] font-bold text-indigo-400 tracking-wider uppercase">Euro BCV</span>
-              <span className="text-[9px] text-zinc-500 block">Oficial Banco Central</span>
+              <span className="text-[9px] text-zinc-500 block">
+                {hasWeekendRate && !isCustomRates
+                  ? (useMondayRate 
+                      ? `Oficial • ${formatDayName(rates.eur_bcv_date)}` 
+                      : `Oficial • ${formatDayName(rates.eur_bcv_prev_date)}`)
+                  : 'Oficial Banco Central'}
+              </span>
             </div>
           </div>
           
@@ -311,14 +466,14 @@ export default function Home() {
               <div className="flex items-baseline gap-1">
                 <span className="text-sm font-medium text-zinc-400">Bs.</span>
                 <span className="text-2xl font-bold font-mono text-indigo-100">
-                  {formatCurrency(rates.eur_bcv.toString())}
+                  {formatCurrency(effectiveEurRate.toString())}
                 </span>
               </div>
             )}
             
             {!loading && !isCustomRates && (
               <button 
-                onClick={() => copyToClipboard(rates.eur_bcv.toFixed(4), 'eur')}
+                onClick={() => copyToClipboard(effectiveEurRate.toFixed(4), 'eur')}
                 className="p-2 rounded-lg hover:bg-white/5 active:bg-white/10 text-zinc-400 hover:text-white transition-all cursor-pointer active:scale-90"
                 title="Copiar tasa"
               >
@@ -390,7 +545,14 @@ export default function Home() {
 
         {/* Rates Summary list - ultra-compact for mobile */}
         <div className="bg-zinc-900/50 p-2.5 rounded-xl border border-white/5 flex items-center justify-around text-[10px] text-zinc-500 font-mono">
-          <div>USD BCV: <span className="font-semibold text-emerald-400">{formatCurrency(activeRates.usd_bcv.toString())}</span></div>
+          <div>
+            USD BCV: <span className="font-semibold text-emerald-400">{formatCurrency(activeRates.usd_bcv.toString())}</span>
+            {hasWeekendRate && !isCustomRates && (
+              <span className="text-[9px] text-zinc-400 ml-1">
+                ({useMondayRate ? 'Lun' : 'Vie'})
+              </span>
+            )}
+          </div>
           <div>EUR: <span className="font-semibold text-indigo-400">{formatCurrency(activeRates.eur_bcv.toString())}</span></div>
           <div>USDT: <span className="font-semibold text-amber-400">{formatCurrency(activeRates.usdt_binance.toString())}</span></div>
         </div>

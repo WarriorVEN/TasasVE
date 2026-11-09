@@ -1,5 +1,14 @@
 import { NextResponse } from 'next/server';
 
+interface HistoricoItem {
+  fuente: string;
+  compra: number | null;
+  venta: number | null;
+  promedio: number;
+  fecha: string;
+  moneda?: string;
+}
+
 interface DolarApiResponse {
   moneda: string;
   fuente: string;
@@ -59,33 +68,101 @@ function extractBinanceRate(ads: BinanceAd[]): number {
 
 export async function GET() {
   let usd_bcv = 0;
+  let usd_bcv_prev = 0;
+  let usd_bcv_date = '';
+  let usd_bcv_prev_date = '';
+
   let eur_bcv = 0;
+  let eur_bcv_prev = 0;
+  let eur_bcv_date = '';
+  let eur_bcv_prev_date = '';
+
   let usdt_binance = 0; // Cost to buy 1 USDT in VES
   let last_updated = new Date().toISOString();
   let errors: string[] = [];
 
-  // 1. Fetch Dolar BCV
+  // 1. Fetch Dolar BCV (Historicos for current + previous day rate)
   try {
-    const res = await fetch('https://ve.dolarapi.com/v1/dolares/oficial', {
+    const res = await fetch('https://ve.dolarapi.com/v1/historicos/dolares/oficial', {
       next: { revalidate: 60 } // Cache for 60 seconds
     });
     if (!res.ok) throw new Error(`DolarApi status: ${res.status}`);
-    const data: DolarApiResponse = await res.json();
-    usd_bcv = data.promedio;
+    const data: HistoricoItem[] = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      const last = data[data.length - 1];
+      usd_bcv = last.promedio;
+      usd_bcv_date = last.fecha;
+
+      if (data.length > 1) {
+        const prev = data[data.length - 2];
+        usd_bcv_prev = prev.promedio;
+        usd_bcv_prev_date = prev.fecha;
+      } else {
+        usd_bcv_prev = usd_bcv;
+        usd_bcv_prev_date = usd_bcv_date;
+      }
+    } else {
+      throw new Error('Formato de datos no válido en historicos');
+    }
   } catch (error: any) {
-    errors.push(`Error fetching USD BCV: ${error.message}`);
+    try {
+      const fallbackRes = await fetch('https://ve.dolarapi.com/v1/dolares/oficial', {
+        next: { revalidate: 60 }
+      });
+      if (fallbackRes.ok) {
+        const fallbackData: DolarApiResponse = await fallbackRes.json();
+        usd_bcv = fallbackData.promedio;
+        usd_bcv_prev = fallbackData.promedio;
+        usd_bcv_date = fallbackData.fechaActualizacion?.split('T')[0] || '';
+        usd_bcv_prev_date = usd_bcv_date;
+      } else {
+        errors.push(`Error fetching USD BCV: ${error.message}`);
+      }
+    } catch {
+      errors.push(`Error fetching USD BCV: ${error.message}`);
+    }
   }
 
-  // 2. Fetch Euro BCV
+  // 2. Fetch Euro BCV (Historicos for current + previous day rate)
   try {
-    const res = await fetch('https://ve.dolarapi.com/v1/euros/oficial', {
+    const res = await fetch('https://ve.dolarapi.com/v1/historicos/euros/oficial', {
       next: { revalidate: 60 }
     });
     if (!res.ok) throw new Error(`DolarApi Euro status: ${res.status}`);
-    const data: DolarApiResponse = await res.json();
-    eur_bcv = data.promedio;
+    const data: HistoricoItem[] = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      const last = data[data.length - 1];
+      eur_bcv = last.promedio;
+      eur_bcv_date = last.fecha;
+
+      if (data.length > 1) {
+        const prev = data[data.length - 2];
+        eur_bcv_prev = prev.promedio;
+        eur_bcv_prev_date = prev.fecha;
+      } else {
+        eur_bcv_prev = eur_bcv;
+        eur_bcv_prev_date = eur_bcv_date;
+      }
+    } else {
+      throw new Error('Formato de datos no válido en historicos Euro');
+    }
   } catch (error: any) {
-    errors.push(`Error fetching EUR BCV: ${error.message}`);
+    try {
+      const fallbackRes = await fetch('https://ve.dolarapi.com/v1/euros/oficial', {
+        next: { revalidate: 60 }
+      });
+      if (fallbackRes.ok) {
+        const fallbackData: DolarApiResponse = await fallbackRes.json();
+        eur_bcv = fallbackData.promedio;
+        eur_bcv_prev = fallbackData.promedio;
+        eur_bcv_date = fallbackData.fechaActualizacion?.split('T')[0] || '';
+        eur_bcv_prev_date = eur_bcv_date;
+      } else {
+        errors.push(`Error fetching EUR BCV: ${error.message}`);
+      }
+    } catch {
+      errors.push(`Error fetching EUR BCV: ${error.message}`);
+    }
   }
 
   // 3. Fetch Binance P2P Rates (SELL ads, meaning user is buying USDT)
@@ -126,7 +203,13 @@ export async function GET() {
     success: errors.length < 3, // Success if we got at least some rates
     rates: {
       usd_bcv,
+      usd_bcv_prev,
+      usd_bcv_date,
+      usd_bcv_prev_date,
       eur_bcv,
+      eur_bcv_prev,
+      eur_bcv_date,
+      eur_bcv_prev_date,
       usdt_binance
     },
     errors: errors.length > 0 ? errors : null,
